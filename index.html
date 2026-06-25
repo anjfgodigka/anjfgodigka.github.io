@@ -1,14 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width+device-width, initial-scale=1.0">
-  <title>웹 호스팅</title>
+    <meta charset="UTF-8">
+    <title>배경음악 재생</title>
+    <style>
+        /* 유튜브 플레이어를 화면 밖으로 완전히 숨김 */
+        .hidden-player {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+        }
+        /* 재생 유도 버튼 스타일 */
+        .play-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-<body> 
-  우선 이 페이지까지 찾아주셔서 감사합니다
-  그만큼 게임을 열심히 해주셨고 무언걸 알아보기 위해서 들어오셨겠죠?...
-  음....
-  아마도요
+<body>
+
+    <h1>웹사이트 배경음악</h1>
+    <button id="start-bgm" class="play-btn">🎵 배경음악 켜기</button>
+
+    <div id="yt-player" class="hidden-player"></div>
+
+    <script>
+        // 1. YouTube Iframe API 로드
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                videoId: 'https://youtu.be/ajDAmJYPQ-U?si=ABe6Hi2rcvOhX25O', // 이곳에 유튜브 영상 ID 입력
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'loop': 1,
+                    'playlist': 'ajDAmJYPQ-U&si' // 반복 재생용
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // 버튼을 누르면 음소거를 해제하고 재생 시작
+            document.getElementById('start-bgm').addEventListener('click', function() {
+                player.unMute();
+                player.playVideo();
+                this.style.display = 'none'; // 클릭 후 버튼 숨기기
+            });
+        }
+    </script>
 </body>
+테스트
 </html>
+
