@@ -2,9 +2,104 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>배경음악 재생</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최종화 - 아이리 칸나</title>
     <style>
-        /* 유튜브 플레이어를 화면 밖으로 완전히 숨김 */
+        /* 칸나 테마의 딥 블루&다크 배경 */
+        body {
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 메인 카드 컨테이너 */
+        .container {
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            background: rgba(30, 41, 59, 0.4);
+            padding: 40px 30px;
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #93c5fd, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        /* 메시지를 적을 수 있는 텍스트 상자 */
+        .message-box {
+            width: 100%;
+            height: 180px;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            color: #fff;
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .message-box:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 재생 버튼 스타일 */
+        #ui-control {
+            transition: opacity 0.5s ease;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
+        }
+
+        .play-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 유튜브 플레이어 화면 숨김 처리 */
         .hidden-player {
             position: absolute;
             top: -9999px;
@@ -12,22 +107,28 @@
             width: 1px;
             height: 1px;
         }
-        /* 재생 유도 버튼 스타일 */
-        .play-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
-    <h1>웹사이트 배경음악</h1>
-    <button id="start-bgm" class="play-btn">🎵 배경음악 켜기</button>
+    <div class="container">
+        <h1>최종화 (The Last Episode)</h1>
+        <div class="subtitle">아이리 칸나 (Airi Kanna)</div>
+
+        <textarea class="message-box" placeholder="여기에 남기고 싶은 메시지를 자유롭게 적어보세요..."></textarea>
+
+        <div id="ui-control">
+            <button id="start-bgm" class="play-btn">🎵 노래 틀기 & 반복 재생</button>
+        </div>
+    </div>
 
     <div id="yt-player" class="hidden-player"></div>
 
     <script>
+        // ⚠️ [필수 확인] 아이리 칸나 '최종화' 공식 MV의 유튜브 비디오 ID를 입력하세요.
+        // 유튜브 링크가 유튜브 링크가 watch?v=ABC_123 이라면 'ABC_123' 문자를 넣어주면 됩니다.
+        var kannaVideoId = '여기에_유튜브_비디오_ID_입력'; 
+
         // 1. YouTube Iframe API 로드
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -37,12 +138,12 @@
         var player;
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
-                videoId: 'https://youtu.be/ajDAmJYPQ-U?si=ABe6Hi2rcvOhX25O', // 이곳에 유튜브 영상 ID 입력
+                videoId: kannaVideoId,
                 playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'loop': 1,
-                    'playlist': 'ajDAmJYPQ-U&si' // 반복 재생용
+                    'autoplay': 0,      // 처음엔 대기
+                    'controls': 0,      // 유튜브 컨트롤바 숨김
+                    'loop': 1,          // 반복 재생 활성화
+                    'playlist': kannaVideoId // 무한 루프 구현용 동일 ID 지정
                 },
                 events: {
                     'onReady': onPlayerReady
@@ -51,18 +152,19 @@
         }
 
         function onPlayerReady(event) {
-            // 버튼을 누르면 음소거를 해제하고 재생 시작
+            // 버튼 클릭 이벤트
             document.getElementById('start-bgm').addEventListener('click', function() {
                 player.unMute();
                 player.playVideo();
-                this.style.display = 'none'; // 클릭 후 버튼 숨기기
+                
+                // 버튼 UI를 부드럽게 사라지게 한 뒤 공간 삭제
+                var ui = document.getElementById('ui-control');
+                ui.style.opacity = '0';
+                setTimeout(function() {
+                    ui.style.display = 'none';
+                }, 500); 
             });
         }
     </script>
 </body>
-테스트
-dd
-re
-fd
 </html>
-
