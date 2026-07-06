@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뭘해야함 </title>
+    <title>뭘해야함</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         /* 칸나 테마의 딥 블루&다크 배경 */
         body {
@@ -16,7 +20,7 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
@@ -31,12 +35,13 @@
             backdrop-filter: blur(16px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(96, 165, 250, 0.2);
+            box-sizing: border-box;
         }
 
-        /* 재생 버튼 컨테이너 (상단 배치 및 여백 설정) */
+        /* 재생 버튼 컨테이너 */
         #ui-control {
             transition: opacity 0.5s ease;
-            margin-bottom: 30px; /* 버튼과 메시지 상자 사이의 간격 */
+            margin-bottom: 30px; 
         }
 
         .play-btn {
@@ -60,8 +65,8 @@
         /* 📝 내가 적은 글을 보여주는 읽기 전용 상자 */
         .message-display {
             width: 100%;
-            min-height: 400px; 
-            max-height: 600px; 
+            min-height: 350px; 
+            max-height: 500px; 
             overflow-y: auto; 
             background-color: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(51, 65, 85, 0.5);
@@ -73,13 +78,98 @@
             box-sizing: border-box;
             text-align: left;      
             white-space: pre-wrap; 
+            margin-bottom: 40px;
         }
 
-        /* 스크롤바 디자인 (딥블루 테마) */
-        .message-display::-webkit-scrollbar {
+        /* 💬 댓글 섹션 스타일 */
+        .comment-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 30px;
+            text-align: left;
+        }
+
+        .comment-section h3 {
+            font-size: 1.2rem;
+            color: #93c5fd;
+            margin-bottom: 15px;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .comment-input {
+            flex: 1;
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .comment-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .comment-submit {
+            background-color: #1e293b;
+            color: #93c5fd;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 0 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .comment-submit:hover {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        /* 댓글 리스트 */
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            background-color: rgba(30, 41, 59, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .comment-author {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .comment-text {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        /* 공동 스크롤바 디자인 */
+        .message-display::-webkit-scrollbar,
+        .comment-list::-webkit-scrollbar {
             width: 6px;
         }
-        .message-display::-webkit-scrollbar-thumb {
+        .message-display::-webkit-scrollbar-thumb,
+        .comment-list::-webkit-scrollbar-thumb {
             background-color: #3b82f6;
             border-radius: 4px;
         }
@@ -98,7 +188,7 @@
 
     <div class="container">
         <div id="ui-control">
-            <button id="start-bgm" class="play-btn">🎵(노래 재생)</button>
+            <button id="start-bgm" class="play-btn">🎵 편지 읽기 (노래 재생)</button>
         </div>
 
         <div class="message-display">안녕하세요, 이 페이지에 머물러주셔서 감사합니다.
@@ -107,40 +197,25 @@
 상단의 버튼을 누르면 아이리 칸나의 '최종화'가 배경음악으로 흐르며,
 음악을 트는 순간 버튼은 깔끔하게 사라지게 됩니다.
 
-여기에 당신의 소중한 이야기나 전하고 싶은 말을 채워보세요.
+아래에는 파이어베이스 데이터베이스와 연동된 실시간 익명 방명록이 준비되어 있습니다.</div>
 
-(버튼이 상단으로 이동한 최종 수정 버전입니다.)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-ㅏ나아ㅏ아ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ
-    
-        
-        
-        
-        
-        
-        
-        
-        
-        이야야ㅑㅑㅑㅑㅑㅑㅑㅑ</div>
+        <div class="comment-section">
+            <h3>방명록 (익명 댓글)</h3>
+            <div class="comment-form">
+                <input type="text" id="comment-text" class="comment-input" placeholder="익명으로 따뜻한 한마디를 남겨보세요..." maxlength="200">
+                <button id="submit-btn" class="comment-submit">등록</button>
+            </div>
+            
+            <div id="comment-list" class="comment-list"></div>
+        </div>
     </div>
 
     <div id="yt-player" class="hidden-player"></div>
 
     <script>
+        // 1. 유튜브 설정 (아이리 칸나 - 최종화)
         var kannaVideoId = 'ajDAmJYPQ-U'; 
 
-        // 1. YouTube Iframe API 로드
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -167,7 +242,6 @@
                 player.unMute();
                 player.playVideo();
                 
-                // 버튼 UI를 부드럽게 사라지게 한 뒤 공간 삭제
                 var ui = document.getElementById('ui-control');
                 ui.style.opacity = '0';
                 setTimeout(function() {
@@ -175,6 +249,63 @@
                 }, 500); 
             });
         }
+
+        // 2. 🔥 [필수 설정] 파이어베이스 연결 설정 정보
+        // 아래 내용을 본인의 파이어베이스 콘솔 앱 설정 값으로 교체하셔야 작동합니다!
+        const firebaseConfig = {
+            apiKey: "여기에_입력",
+            authDomain: "여기에_입력",
+            databaseURL: "여기에_입력",
+            projectId: "여기에_입력",
+            storageBucket: "여기에_입력",
+            messagingSenderId: "여기에_입력",
+            appId: "여기에_입력"
+        };
+        
+        // 파이어베이스 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // 3. 💬 DB에서 댓글 실시간으로 불러와 화면에 뿌리기
+        database.ref('comments').orderByChild('timestamp').on('child_added', function(snapshot) {
+            const data = snapshot.val();
+            
+            var newComment = document.createElement('div');
+            newComment.className = 'comment-item';
+            
+            // 등록 시간 포맷 설정
+            const date = new Date(data.timestamp).toLocaleString('ko-KR', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+            
+            // XSS 공격 방지를 위해 텍스트 치환 처리
+            const safeText = data.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            newComment.innerHTML = `
+                <div class="comment-author">익명의 방문자 · ${date}</div>
+                <div class="comment-text">${safeText}</div>
+            `;
+            
+            var list = document.getElementById('comment-list');
+            list.insertBefore(newComment, list.firstChild); // 최신 댓글이 맨 위로 올라오도록 설정
+        });
+
+        // 4. 💬 등록 버튼을 누르면 DB로 댓글 전송
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            var input = document.getElementById('comment-text');
+            var text = input.value.trim();
+            
+            if(text === "") {
+                alert("내용을 입력해주세요.");
+                return;
+            }
+
+            // DB에 데이터 저장 push
+            database.ref('comments').push({
+                text: text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            input.value = ""; // 입력창 비우기
+        });
     </script>
 </body>
 </html>
