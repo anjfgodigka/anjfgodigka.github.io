@@ -128,7 +128,8 @@
             transition: all 0.3s;
         }
 
-        .comment-submit:hover {
+        /* 호버 효과 (비활성화 상태가 아닐 때만 작동) */
+        .comment-submit:not(:disabled):hover {
             background-color: #2563eb;
             color: white;
             border-color: #2563eb;
@@ -251,7 +252,6 @@
         }
 
         // 2. 🔥 [필수 설정] 파이어베이스 연결 설정 정보
-        // 아래 내용을 본인의 파이어베이스 콘솔 앱 설정 값으로 교체하셔야 작동합니다!
         const firebaseConfig = {
             apiKey: "여기에_입력",
             authDomain: "여기에_입력",
@@ -273,10 +273,7 @@
             var newComment = document.createElement('div');
             newComment.className = 'comment-item';
             
-            // 등록 시간 포맷 설정
             const date = new Date(data.timestamp).toLocaleString('ko-KR', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
-            
-            // XSS 공격 방지를 위해 텍스트 치환 처리
             const safeText = data.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
             newComment.innerHTML = `
@@ -285,12 +282,13 @@
             `;
             
             var list = document.getElementById('comment-list');
-            list.insertBefore(newComment, list.firstChild); // 최신 댓글이 맨 위로 올라오도록 설정
+            list.insertBefore(newComment, list.firstChild); 
         });
 
-        // 4. 💬 등록 버튼을 누르면 DB로 댓글 전송
+        // 4. 💬 등록 버튼을 누르면 DB로 댓글 전송 (수정된 핵심 로직)
         document.getElementById('submit-btn').addEventListener('click', function() {
             var input = document.getElementById('comment-text');
+            var button = document.getElementById('submit-btn');
             var text = input.value.trim();
             
             if(text === "") {
@@ -298,13 +296,34 @@
                 return;
             }
 
-            // DB에 데이터 저장 push
+            // [변경점] 파이어베이스 서버에 저장이 완전히 "완료된 시점(콜백)"을 캐치합니다.
             database.ref('comments').push({
                 text: text,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
+            }, function(error) {
+                if (error) {
+                    alert("전송에 실패했습니다. 다시 시도해주세요.");
+                } else {
+                    // 1. 성공적으로 서버에 보내지면 기존에 썼던 글을 지웁니다.
+                    input.value = ""; 
 
-            input.value = ""; // 입력창 비우기
+                    // 2. 버튼을 초록색 성공 상태로 변경하여 시각적 피드백을 제공합니다.
+                    button.innerText = "✅ 완료";
+                    button.style.backgroundColor = "#10b981"; 
+                    button.style.borderColor = "#10b981";
+                    button.style.color = "#ffffff";
+                    button.disabled = true; // 연타 방지
+
+                    // 3. 1.5초 후에 버튼을 원래 디자인으로 되돌립니다.
+                    setTimeout(function() {
+                        button.innerText = "등록";
+                        button.style.backgroundColor = "#1e293b";
+                        button.style.borderColor = "rgba(96, 165, 250, 0.3)";
+                        button.style.color = "#93c5fd";
+                        button.disabled = false;
+                    }, 1500);
+                }
+            });
         });
     </script>
 </body>
