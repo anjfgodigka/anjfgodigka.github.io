@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뭘해야함</title>
+    <title>최종화 - 아이리 칸나</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -128,14 +128,20 @@
             transition: all 0.3s;
         }
 
-        /* 호버 효과 (비활성화 상태가 아닐 때만 작동) */
         .comment-submit:not(:disabled):hover {
             background-color: #2563eb;
             color: white;
             border-color: #2563eb;
         }
 
-        /* 댓글 리스트 */
+        /* 댓글 리스트 Wrapper - 기본적으로 숨김 처리 */
+        .comment-list-wrapper {
+            display: none; 
+            margin-top: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
         .comment-list {
             display: flex;
             flex-direction: column;
@@ -164,7 +170,26 @@
             line-height: 1.5;
         }
 
-        /* 공동 스크롤바 디자인 */
+        /* 관리자 진입 버튼 스타일 */
+        .admin-toggle-wrapper {
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        .admin-toggle-btn {
+            background: none;
+            border: none;
+            color: #475569;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .admin-toggle-btn:hover {
+            color: #93c5fd;
+        }
+
+        /* 스크롤바 디자인 */
         .message-display::-webkit-scrollbar,
         .comment-list::-webkit-scrollbar {
             width: 6px;
@@ -198,7 +223,7 @@
 상단의 버튼을 누르면 아이리 칸나의 '최종화'가 배경음악으로 흐르며,
 음악을 트는 순간 버튼은 깔끔하게 사라지게 됩니다.
 
-아래에는 파이어베이스 데이터베이스와 연동된 실시간 익명 방명록이 준비되어 있습니다.</div>
+아래 방명록에 남겨주신 글은 관리자 외에는 볼 수 없으니 편하게 남겨주세요.</div>
 
         <div class="comment-section">
             <h3>방명록 (익명 댓글)</h3>
@@ -207,7 +232,14 @@
                 <button id="submit-btn" class="comment-submit">등록</button>
             </div>
             
-            <div id="comment-list" class="comment-list"></div>
+            <div id="admin-list-wrapper" class="comment-list-wrapper">
+                <h4 style="color: #f43f5e; margin-bottom: 10px;">🔒 관리자 뷰어 활성화됨</h4>
+                <div id="comment-list" class="comment-list"></div>
+            </div>
+
+            <div class="admin-toggle-wrapper">
+                <button id="admin-login-btn" class="admin-toggle-btn">🔒 관리자 모드</button>
+            </div>
         </div>
     </div>
 
@@ -251,43 +283,66 @@
             });
         }
 
-        // 2. 🔥 [필수 설정] 파이어베이스 연결 설정 정보
+        // 2. 🔥 [연동 완료] 사용자의 파이어베이스 연결 설정 정보
         const firebaseConfig = {
-          apiKey: "AIzaSyBKmo57nKqIpRQvoPOUFtYHXZE2IpcHzbY",
-          authDomain: "website-32a82.firebaseapp.com",
-          databaseURL: "https://website-32a82-default-rtdb.firebaseio.com",
-          projectId: "website-32a82",
-          storageBucket: "website-32a82.firebasestorage.app",
-          messagingSenderId: "51412253738",
-          appId: "1:51412253738:web:018218156cc35b11869753",
-          measurementId: "G-M6ND09X25Q"
-
+            apiKey: "AIzaSyBKmo57nKqIpRQvoPOUFtYHXZE2IpcHzbY",
+            authDomain: "website-32a82.firebaseapp.com",
+            databaseURL: "https://website-32a82-default-rtdb.firebaseio.com",
+            projectId: "website-32a82",
+            storageBucket: "website-32a82.firebasestorage.app",
+            messagingSenderId: "51412253738",
+            appId: "1:51412253738:web:018218156cc35b11869753",
+            measurementId: "G-M6ND09X25Q"
         };
         
-        // 파이어베이스 초기화
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 3. 💬 DB에서 댓글 실시간으로 불러와 화면에 뿌리기
-        database.ref('comments').orderByChild('timestamp').on('child_added', function(snapshot) {
-            const data = snapshot.val();
-            
-            var newComment = document.createElement('div');
-            newComment.className = 'comment-item';
-            
-            const date = new Date(data.timestamp).toLocaleString('ko-KR', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
-            const safeText = data.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // 3. 🔐 관리자 비밀번호 설정
+        // ⭐ 아래 "원하는비밀번호입력" 문구를 본인이 쓸 진짜 비밀번호로 바꿔주세요!
+        const ADMIN_PASSWORD = "원하는비밀번호입력"; 
+        let isAdminAuthenticated = false;
 
-            newComment.innerHTML = `
-                <div class="comment-author">익명의 방문자 · ${date}</div>
-                <div class="comment-text">${safeText}</div>
-            `;
-            
-            var list = document.getElementById('comment-list');
-            list.insertBefore(newComment, list.firstChild); 
+        document.getElementById('admin-login-btn').addEventListener('click', function() {
+            if (isAdminAuthenticated) return;
+
+            var inputPassword = prompt("관리자 비밀번호를 입력하세요:");
+
+            if (inputPassword === ADMIN_PASSWORD) {
+                alert("인증 성공! 댓글 데이터를 불러옵니다.");
+                isAdminAuthenticated = true;
+                
+                document.getElementById('admin-list-wrapper').style.display = 'block';
+                document.getElementById('admin-login-btn').style.display = 'none'; 
+
+                loadCommentsRealtime();
+            } else if (inputPassword !== null) {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
         });
 
-        // 4. 💬 등록 버튼을 누르면 DB로 댓글 전송 (수정된 핵심 로직)
+        // 파이어베이스 데이터 로드 함수
+        function loadCommentsRealtime() {
+            database.ref('comments').orderByChild('timestamp').on('child_added', function(snapshot) {
+                const data = snapshot.val();
+                
+                var newComment = document.createElement('div');
+                newComment.className = 'comment-item';
+                
+                const date = new Date(data.timestamp).toLocaleString('ko-KR', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                const safeText = data.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+                newComment.innerHTML = `
+                    <div class="comment-author">익명의 방문자 · ${date}</div>
+                    <div class="comment-text">${safeText}</div>
+                `;
+                
+                var list = document.getElementById('comment-list');
+                list.insertBefore(newComment, list.firstChild); 
+            });
+        }
+
+        // 4. 💬 댓글 전송 및 UX 피드백 로직
         document.getElementById('submit-btn').addEventListener('click', function() {
             var input = document.getElementById('comment-text');
             var button = document.getElementById('submit-btn');
@@ -298,7 +353,6 @@
                 return;
             }
 
-            // [변경점] 파이어베이스 서버에 저장이 완전히 "완료된 시점(콜백)"을 캐치합니다.
             database.ref('comments').push({
                 text: text,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -306,17 +360,14 @@
                 if (error) {
                     alert("전송에 실패했습니다. 다시 시도해주세요.");
                 } else {
-                    // 1. 성공적으로 서버에 보내지면 기존에 썼던 글을 지웁니다.
                     input.value = ""; 
 
-                    // 2. 버튼을 초록색 성공 상태로 변경하여 시각적 피드백을 제공합니다.
                     button.innerText = "✅ 완료";
                     button.style.backgroundColor = "#10b981"; 
                     button.style.borderColor = "#10b981";
                     button.style.color = "#ffffff";
-                    button.disabled = true; // 연타 방지
+                    button.disabled = true; 
 
-                    // 3. 1.5초 후에 버튼을 원래 디자인으로 되돌립니다.
                     setTimeout(function() {
                         button.innerText = "등록";
                         button.style.backgroundColor = "#1e293b";
