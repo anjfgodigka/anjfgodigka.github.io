@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뭘해야함</title>
+    <title>최종화 - 아이리 칸나</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
-        /* 칸나 테마의 딥 블루&다크 배경 */
         body {
             background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
             color: #f8fafc;
@@ -25,7 +24,6 @@
             box-sizing: border-box;
         }
 
-        /* 메인 카드 컨테이너 */
         .container {
             max-width: 800px; 
             width: 100%;
@@ -39,7 +37,6 @@
             box-sizing: border-box;
         }
 
-        /* 재생 버튼 컨테이너 */
         #ui-control {
             transition: opacity 0.5s ease;
             margin-bottom: 30px; 
@@ -63,7 +60,6 @@
             box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
         }
 
-        /* 📝 내가 적은 글을 보여주는 읽기 전용 상자 */
         .message-display {
             width: 100%;
             min-height: 350px; 
@@ -82,7 +78,6 @@
             margin-bottom: 40px;
         }
 
-        /* 💬 댓글 섹션 스타일 */
         .comment-section {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 30px;
@@ -135,7 +130,6 @@
             border-color: #2563eb;
         }
 
-        /* 🔒 관리자 전용 댓글 리스트 Wrapper */
         .comment-list-wrapper {
             display: none; 
             margin-top: 20px;
@@ -172,7 +166,6 @@
             font-weight: bold;
         }
 
-        /* ❌ 삭제 버튼 스타일 */
         .comment-delete-btn {
             background: none;
             border: none;
@@ -194,7 +187,6 @@
             line-height: 1.5;
         }
 
-        /* 관리자 진입 버튼 스타일 */
         .admin-toggle-wrapper {
             text-align: right;
             margin-top: 15px;
@@ -224,7 +216,6 @@
             border-radius: 4px;
         }
 
-        /* 유튜브 플레이어 화면 숨김 처리 */
         .hidden-player {
             position: absolute;
             top: -9999px;
@@ -250,15 +241,15 @@
 아래 방명록에 남겨주신 글은 관리자 외에는 볼 수 없으니 편하게 남겨주세요.
         
         
-        테스트를 위한 글
+        테스트
         
         
         
         
-테스트를 위한 글 </div>
+테스트</div>
 
         <div class="comment-section">
-            <h3>비공개로 할 말</h3>
+            <h3>익명 댓글</h3>
             <div class="comment-form">
                 <input type="text" id="comment-text" class="comment-input" placeholder="한마디..." maxlength="200">
                 <button id="submit-btn" class="comment-submit">등록</button>
@@ -271,6 +262,7 @@
 
             <div class="admin-toggle-wrapper">
                 <button id="admin-login-btn" class="admin-toggle-btn">🔒 관리자 모드</button>
+                <button id="admin-logout-btn" class="admin-toggle-btn" style="display: none; color: #f43f5e;">🔓 로그아웃</button>
             </div>
         </div>
     </div>
@@ -278,9 +270,8 @@
     <div id="yt-player" class="hidden-player"></div>
 
     <script>
-        // 1. 유튜브 설정 (아이리 칸나 - 최종화)
+        // 1. 유튜브 설정 
         var kannaVideoId = 'ajDAmJYPQ-U'; 
-
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -290,15 +281,8 @@
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
                 videoId: kannaVideoId,
-                playerVars: {
-                    'autoplay': 0,      
-                    'controls': 0,      
-                    'loop': 1,          
-                    'playlist': kannaVideoId 
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': kannaVideoId },
+                events: { 'onReady': onPlayerReady }
             });
         }
 
@@ -306,16 +290,13 @@
             document.getElementById('start-bgm').addEventListener('click', function() {
                 player.unMute();
                 player.playVideo();
-                
                 var ui = document.getElementById('ui-control');
                 ui.style.opacity = '0';
-                setTimeout(function() {
-                    ui.style.display = 'none';
-                }, 500); 
+                setTimeout(function() { ui.style.display = 'none'; }, 500); 
             });
         }
 
-        // 2. 🔥 파이어베이스 연결 설정 정보
+        // 2. 🔥 파이어베이스 설정
         const firebaseConfig = {
             apiKey: "AIzaSyBKmo57nKqIpRQvoPOUFtYHXZE2IpcHzbY",
             authDomain: "website-32a82.firebaseapp.com",
@@ -331,34 +312,52 @@
         const database = firebase.database();
         const auth = firebase.auth(); 
 
-        // 3. 🔐 정식 파이어베이스 보안 로그인 기능
-        document.getElementById('admin-login-btn').addEventListener('click', function() {
-            if (auth.currentUser) {
-                alert("이미 관리자로 로그인되어 있습니다.");
-                return;
+        // 3. 🛠️ [버그 수정] 로그인 상태 실시간 감지
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                // 로그인 되어있다면 UI를 바로 관리자 모드로 변경
+                document.getElementById('admin-list-wrapper').style.display = 'block';
+                document.getElementById('admin-login-btn').style.display = 'none';
+                document.getElementById('admin-logout-btn').style.display = 'inline-block';
+                
+                // 데이터 중복 로드를 막기 위해 리스트 초기화 후 새로 불러오기
+                document.getElementById('comment-list').innerHTML = ''; 
+                loadCommentsRealtime();
+            } else {
+                // 로그아웃 상태라면 관리자 모드 숨기기
+                document.getElementById('admin-list-wrapper').style.display = 'none';
+                document.getElementById('admin-login-btn').style.display = 'inline-block';
+                document.getElementById('admin-logout-btn').style.display = 'none';
+                document.getElementById('comment-list').innerHTML = ''; 
             }
+        });
 
+        // 4. 🔐 관리자 로그인 & 로그아웃 기능
+        document.getElementById('admin-login-btn').addEventListener('click', function() {
             var email = prompt("관리자 이메일을 입력하세요:");
             if (!email) return;
             var password = prompt("관리자 비밀번호를 입력하세요:");
             if (!password) return;
 
             auth.signInWithEmailAndPassword(email, password)
-            .then(function(userCredential) {
-                alert("인증 성공! 관리자 모드가 활성화되었습니다.");
-                
-                document.getElementById('admin-list-wrapper').style.display = 'block';
-                document.getElementById('admin-login-btn').style.display = 'none'; 
-
-                loadCommentsRealtime();
+            .then(function() {
+                alert("인증 성공!");
+                // UI 변경은 onAuthStateChanged가 자동으로 처리해줍니다.
             })
             .catch(function(error) {
                 alert("로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다.");
-                console.error(error.message);
             });
         });
 
-        // 4. 🔄 파이어베이스 실시간 데이터 로드 & 삭제 연동 함수
+        document.getElementById('admin-logout-btn').addEventListener('click', function() {
+            if (confirm("관리자 모드에서 로그아웃 하시겠습니까?")) {
+                auth.signOut().then(function() {
+                    alert("안전하게 로그아웃 되었습니다.");
+                });
+            }
+        });
+
+        // 5. 🔄 실시간 데이터 로드
         function loadCommentsRealtime() {
             database.ref('comments').orderByChild('timestamp').on('child_added', function(snapshot) {
                 const commentId = snapshot.key;
@@ -392,26 +391,20 @@
             });
         }
 
-        // 5. ❌ 실제 파이어베이스 DB 데이터를 삭제하는 함수
+        // 6. ❌ 댓글 삭제
         function deleteComment(commentId) {
             if (!auth.currentUser) {
-                alert("권한이 없습니다. 먼저 로그인해 주세요.");
+                alert("권한이 없습니다.");
                 return;
             }
-
-            if (confirm("이 댓글을 정말로 영구 삭제하시겠습니까?")) {
+            if (confirm("이 댓글을 영구 삭제하시겠습니까?")) {
                 database.ref('comments').child(commentId).remove()
-                .then(function() {
-                    alert("댓글이 성공적으로 삭제되었습니다.");
-                })
-                .catch(function(error) {
-                    alert("삭제 실패: " + error.message);
-                });
+                .catch(function(error) { alert("삭제 실패: " + error.message); });
             }
         }
 
-        // 6. 💬 댓글 전송 및 UX 피드백 로직
-        document.getElementById('submit-btn').addEventListener('click', function() {
+        // 7. 💬 엔터키 & 버튼 전송 로직
+        function submitComment() {
             var input = document.getElementById('comment-text');
             var button = document.getElementById('submit-btn');
             var text = input.value.trim();
@@ -426,10 +419,9 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }, function(error) {
                 if (error) {
-                    alert("전송에 실패했습니다. 다시 시도해주세요.");
+                    alert("전송 실패: " + error.message);
                 } else {
                     input.value = ""; 
-
                     button.innerText = "✅ 완료";
                     button.style.backgroundColor = "#10b981"; 
                     button.style.borderColor = "#10b981";
@@ -445,14 +437,14 @@
                     }, 1500);
                 }
             });
-        });
+        }
 
-        // ✨ 7. [신규 추가] Enter 키 입력 시 자동 등록 기능
+        document.getElementById('submit-btn').addEventListener('click', submitComment);
+
         document.getElementById('comment-text').addEventListener('keydown', function(event) {
-            // 눌린 키가 'Enter'이고 버튼이 활성화(연타 방지 중이 아님) 상태일 때만 작동
             if (event.key === 'Enter') {
-                event.preventDefault(); // 엔터 입력 시 발생할 수 있는 페이지 새로고침 등 기본 동작 방지
-                document.getElementById('submit-btn').click(); // 등록 버튼 클릭 트리거
+                event.preventDefault(); 
+                submitComment();
             }
         });
     </script>
