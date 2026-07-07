@@ -296,7 +296,7 @@
             });
         }
 
-        // 2. 🔥 파이어베이스 설정
+        // 2. 파이어베이스 설정
         const firebaseConfig = {
             apiKey: "AIzaSyBKmo57nKqIpRQvoPOUFtYHXZE2IpcHzbY",
             authDomain: "website-32a82.firebaseapp.com",
@@ -312,7 +312,7 @@
         const database = firebase.database();
         const auth = firebase.auth(); 
 
-        // 3. 🛠️ [버그 수정] 로그인 상태 실시간 감지
+        // 3. 로그인 상태 실시간 감지
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 // 로그인 되어있다면 UI를 바로 관리자 모드로 변경
@@ -332,7 +332,7 @@
             }
         });
 
-        // 4. 🔐 관리자 로그인 & 로그아웃 기능
+        // 4. 관리자 로그인 & 로그아웃 기능
         document.getElementById('admin-login-btn').addEventListener('click', function() {
             var email = prompt("관리자 이메일을 입력하세요:");
             if (!email) return;
@@ -357,7 +357,7 @@
             }
         });
 
-        // 5. 🔄 실시간 데이터 로드
+        // 5. 실시간 데이터 로드
         function loadCommentsRealtime() {
             database.ref('comments').orderByChild('timestamp').on('child_added', function(snapshot) {
                 const commentId = snapshot.key;
@@ -391,7 +391,7 @@
             });
         }
 
-        // 6. ❌ 댓글 삭제
+        // 6. 댓글 삭제
         function deleteComment(commentId) {
             if (!auth.currentUser) {
                 alert("권한이 없습니다.");
@@ -403,7 +403,7 @@
             }
         }
 
-        // 7. 💬 엔터키 & 버튼 전송 로직
+        // 7. 엔터키 & 버튼 전송 로직
         function submitComment() {
             var input = document.getElementById('comment-text');
             var button = document.getElementById('submit-btn');
