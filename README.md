@@ -1,1 +1,2 @@
-# anjfgodigka.github.io
+# AI로 웹사이트 만들기
+해당 폐이지는 AI로 제작해본 사이트입니다.
