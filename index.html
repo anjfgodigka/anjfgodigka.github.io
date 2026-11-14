@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #111; /* 배경을 깔끔하게 어둡게 설정 (원하시면 #fff로 변경 가능) */
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        .download-link {
+            display: inline-block;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .download-link:hover {
+            transform: scale(1.02); /* 마우스 올렸을 때 살짝 확대 */
+        }
+        .main-image {
+            max-width: 90vw;
+            max-height: 85vh;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        .guide-text {
+            margin-top: 20px;
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 
+          href: 다운로드할 파일명 (Gematri Primus.png)
+          download: 다운로드될 때 저장될 파일 이름 지정 
+        -->
+        <a href="gematri-primus.png" download="Gematri_Primus.png" class="download-link">
+            <img src="main-image.png" alt="오우 낚이셨어요" class="main-image">
+        </a>
+        <div class="guide-text">이미지를 클릭하거나 터치하면 파일이 다운로드됩니다.</div>
+    </div>
+
+</body>
+</html>
